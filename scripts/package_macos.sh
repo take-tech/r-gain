@@ -9,18 +9,19 @@ PAYLOAD_DIR="${BUILD_DIR}/pkg-payload"
 IDENTIFIER="com.ranze.rgain.pkg"
 VERSION="${RGain_VERSION:-0.1.0}"
 
-VST3_SOURCE="${ARTIFACTS_DIR}/VST3/R-Gain.vst3"
-AU_SOURCE="${ARTIFACTS_DIR}/AU/R-Gain.component"
 PKG_OUTPUT="${PACKAGE_DIR}/R-Gain-${VERSION}-macOS.pkg"
 
+VST3_SOURCE="$(find "${ARTIFACTS_DIR}" -type d -name "R-Gain.vst3" | head -n 1)"
+AU_SOURCE="$(find "${ARTIFACTS_DIR}" -type d -name "R-Gain.component" | head -n 1)"
+
 if [[ ! -d "${VST3_SOURCE}" ]]; then
-    echo "Missing VST3 bundle: ${VST3_SOURCE}" >&2
+    echo "Missing VST3 bundle under: ${ARTIFACTS_DIR}" >&2
     echo "Run: cmake --build build --config Release" >&2
     exit 1
 fi
 
 if [[ ! -d "${AU_SOURCE}" ]]; then
-    echo "Missing AU bundle: ${AU_SOURCE}" >&2
+    echo "Missing AU bundle under: ${ARTIFACTS_DIR}" >&2
     echo "Run: cmake --build build --config Release" >&2
     exit 1
 fi

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD_DIR="${ROOT_DIR}/build"
+ARTIFACTS_DIR="${BUILD_DIR}/RGain_artefacts"
+PACKAGE_DIR="${BUILD_DIR}/packages"
+PAYLOAD_DIR="${BUILD_DIR}/pkg-payload"
+IDENTIFIER="com.ranze.rgain.pkg"
+VERSION="${RGain_VERSION:-0.1.0}"
+
+VST3_SOURCE="${ARTIFACTS_DIR}/VST3/R-Gain.vst3"
+AU_SOURCE="${ARTIFACTS_DIR}/AU/R-Gain.component"
+PKG_OUTPUT="${PACKAGE_DIR}/R-Gain-${VERSION}-macOS.pkg"
+
+if [[ ! -d "${VST3_SOURCE}" ]]; then
+    echo "Missing VST3 bundle: ${VST3_SOURCE}" >&2
+    echo "Run: cmake --build build --config Release" >&2
+    exit 1
+fi
+
+if [[ ! -d "${AU_SOURCE}" ]]; then
+    echo "Missing AU bundle: ${AU_SOURCE}" >&2
+    echo "Run: cmake --build build --config Release" >&2
+    exit 1
+fi
+
+rm -rf "${PAYLOAD_DIR}" "${PACKAGE_DIR}"
+mkdir -p "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3"
+mkdir -p "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components"
+mkdir -p "${PACKAGE_DIR}"
+
+ditto "${VST3_SOURCE}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3/R-Gain.vst3"
+ditto "${AU_SOURCE}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components/R-Gain.component"
+
+pkgbuild \
+    --root "${PAYLOAD_DIR}" \
+    --identifier "${IDENTIFIER}" \
+    --version "${VERSION}" \
+    --install-location "/" \
+    "${PKG_OUTPUT}"
+
+echo "Created ${PKG_OUTPUT}"

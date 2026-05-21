@@ -7,7 +7,12 @@ ARTIFACTS_DIR="${BUILD_DIR}/RGain_artefacts"
 PACKAGE_DIR="${BUILD_DIR}/packages"
 PAYLOAD_DIR="${BUILD_DIR}/pkg-payload"
 IDENTIFIER="com.ranze.rgain.pkg"
-VERSION="${RGain_VERSION:-0.2.0}"
+VERSION="${RGain_VERSION:-0.2.1}"
+MACOS_APP_SIGN_IDENTITY="${MACOS_APP_SIGN_IDENTITY:-}"
+MACOS_INSTALLER_SIGN_IDENTITY="${MACOS_INSTALLER_SIGN_IDENTITY:-}"
+MACOS_NOTARY_APPLE_ID="${MACOS_NOTARY_APPLE_ID:-}"
+MACOS_NOTARY_PASSWORD="${MACOS_NOTARY_PASSWORD:-}"
+MACOS_NOTARY_TEAM_ID="${MACOS_NOTARY_TEAM_ID:-}"
 
 PKG_OUTPUT="${PACKAGE_DIR}/R-Gain-${VERSION}-macOS.pkg"
 
@@ -34,11 +39,34 @@ mkdir -p "${PACKAGE_DIR}"
 ditto "${VST3_SOURCE}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3/R-Gain.vst3"
 ditto "${AU_SOURCE}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components/R-Gain.component"
 
-pkgbuild \
-    --root "${PAYLOAD_DIR}" \
-    --identifier "${IDENTIFIER}" \
-    --version "${VERSION}" \
-    --install-location "/" \
-    "${PKG_OUTPUT}"
+if [[ -n "${MACOS_APP_SIGN_IDENTITY}" ]]; then
+    codesign --force --deep --options runtime --timestamp --sign "${MACOS_APP_SIGN_IDENTITY}" \
+        "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3/R-Gain.vst3"
+    codesign --force --deep --options runtime --timestamp --sign "${MACOS_APP_SIGN_IDENTITY}" \
+        "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components/R-Gain.component"
+fi
+
+pkgbuild_args=(
+    --root "${PAYLOAD_DIR}"
+    --identifier "${IDENTIFIER}"
+    --version "${VERSION}"
+    --install-location "/"
+)
+
+if [[ -n "${MACOS_INSTALLER_SIGN_IDENTITY}" ]]; then
+    pkgbuild_args+=(--sign "${MACOS_INSTALLER_SIGN_IDENTITY}")
+fi
+
+pkgbuild "${pkgbuild_args[@]}" "${PKG_OUTPUT}"
+
+if [[ -n "${MACOS_NOTARY_APPLE_ID}" && -n "${MACOS_NOTARY_PASSWORD}" && -n "${MACOS_NOTARY_TEAM_ID}" ]]; then
+    xcrun notarytool submit "${PKG_OUTPUT}" \
+        --apple-id "${MACOS_NOTARY_APPLE_ID}" \
+        --password "${MACOS_NOTARY_PASSWORD}" \
+        --team-id "${MACOS_NOTARY_TEAM_ID}" \
+        --wait
+
+    xcrun stapler staple "${PKG_OUTPUT}"
+fi
 
 echo "Created ${PKG_OUTPUT}"

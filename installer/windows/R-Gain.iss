@@ -1,7 +1,7 @@
 #define MyAppName "R-Gain"
 #define MyAppVersion GetEnv("RGAIN_VERSION")
 #if MyAppVersion == ""
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.2.1"
 #endif
 #define MyAppPublisher "Ranze"
 #define MyAppURL "https://github.com/take-tech/r-gain"

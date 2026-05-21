@@ -13,6 +13,12 @@ namespace rgain::param
             0.0f,
             juce::AudioParameterFloatAttributes().withLabel("dB")));
 
+        parameters.push_back(std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID { theme, 1 },
+            "Theme",
+            juce::StringArray { "Ember", "Amber", "Ruby", "Graphite", "Blush" },
+            0));
+
         return { parameters.begin(), parameters.end() };
     }
 }

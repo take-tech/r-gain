@@ -15,6 +15,7 @@ v0.2 keeps the same simple audio feature set and moves shared UI theme code into
 - Gain control from -60 dB to +24 dB
 - Smoothed gain changes to avoid clicks
 - Simple L/R output peak meter
+- Switchable UI themes
 - APVTS-based parameter management
 - DSP processing separated into `rgain::dsp::GainProcessor`
 
@@ -99,6 +100,16 @@ R-Gainは、音量調整用のシンプルなゲインプラグインです。�
 
 v0.1のメーターは簡易ピークメーターです。RMS、ラウドネス、クリップ表示にはまだ対応していません。
 
+### Theme
+
+右上のテーマボタンから、UIテーマを切り替えられます。
+
+- Ember
+- Amber
+- Ruby
+- Graphite
+- Blush
+
 ## Build
 
 Clone with submodules so JUCE is available at `external/juce`.
@@ -144,11 +155,42 @@ GitHub Actions can build downloadable installers for Releases.
 To create release installers, push a version tag:
 
 ```sh
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.2.1
+git push origin v0.2.1
 ```
 
 The generated installers are attached to the GitHub Release. The current setup is unsigned. For public distribution, macOS Developer ID signing/notarization and Windows code signing should be added before wider release.
+
+### macOS Signing And Notarization
+
+Unsigned macOS installers can show a Gatekeeper warning saying Apple cannot verify that the package is free of malware. To distribute a package that opens normally, sign it with Apple Developer ID certificates and notarize it with Apple.
+
+Required Apple Developer certificates:
+
+- `Developer ID Application`
+- `Developer ID Installer`
+
+The macOS package script supports signing and notarization through environment variables:
+
+```sh
+MACOS_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+MACOS_INSTALLER_SIGN_IDENTITY="Developer ID Installer: Your Name (TEAMID)" \
+MACOS_NOTARY_APPLE_ID="apple-id@example.com" \
+MACOS_NOTARY_PASSWORD="app-specific-password" \
+MACOS_NOTARY_TEAM_ID="TEAMID" \
+./scripts/package_macos.sh
+```
+
+For GitHub Actions, set these repository secrets:
+
+- `MACOS_CERTIFICATE_P12_BASE64`
+- `MACOS_CERTIFICATE_PASSWORD`
+- `MACOS_APP_SIGN_IDENTITY`
+- `MACOS_INSTALLER_SIGN_IDENTITY`
+- `MACOS_NOTARY_APPLE_ID`
+- `MACOS_NOTARY_PASSWORD`
+- `MACOS_NOTARY_TEAM_ID`
+- `MACOS_KEYCHAIN_PASSWORD` optional
 
 ## Development Status
 

@@ -5,6 +5,7 @@
 namespace rgain::param
 {
     static constexpr auto gainDb = "gainDb";
+    static constexpr auto theme = "theme";
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 }

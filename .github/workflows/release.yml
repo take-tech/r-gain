@@ -22,10 +22,34 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
+      - name: Import Apple Developer ID certificates
+        if: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 != '' && secrets.MACOS_CERTIFICATE_PASSWORD != '' }}
+        env:
+          MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/ranze-developer-id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-temporary-keychain-password}"
+
+          echo "$MACOS_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
       - name: Package
+        env:
+          MACOS_APP_SIGN_IDENTITY: ${{ secrets.MACOS_APP_SIGN_IDENTITY }}
+          MACOS_INSTALLER_SIGN_IDENTITY: ${{ secrets.MACOS_INSTALLER_SIGN_IDENTITY }}
+          MACOS_NOTARY_APPLE_ID: ${{ secrets.MACOS_NOTARY_APPLE_ID }}
+          MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+          MACOS_NOTARY_TEAM_ID: ${{ secrets.MACOS_NOTARY_TEAM_ID }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" = "$GITHUB_REF_NAME" ]; then VERSION="0.2.0"; fi
+          if [ "$VERSION" = "$GITHUB_REF_NAME" ]; then VERSION="0.2.1"; fi
           RGain_VERSION="$VERSION" ./scripts/package_macos.sh
 
       - name: Upload artifact
@@ -59,7 +83,7 @@ jobs:
         shell: pwsh
         run: |
           $version = "${env:GITHUB_REF_NAME}" -replace '^v', ''
-          if ($version -eq "${env:GITHUB_REF_NAME}") { $version = "0.2.0" }
+          if ($version -eq "${env:GITHUB_REF_NAME}") { $version = "0.2.1" }
           $vst3 = Get-ChildItem -Path build -Recurse -Directory -Filter "R-Gain.vst3" | Select-Object -First 1
           if (-not $vst3) { throw "R-Gain.vst3 was not found under build" }
           New-Item -ItemType Directory -Force -Path build/packages | Out-Null

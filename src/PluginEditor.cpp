@@ -1,12 +1,14 @@
 #include "PluginEditor.h"
 
+#include "UserSettings.h"
+
 #include <cmath>
 
 RGainAudioProcessorEditor::RGainAudioProcessorEditor(RGainAudioProcessor& processorRef)
     : AudioProcessorEditor(&processorRef),
       audioProcessor(processorRef)
 {
-    setSize(320, 220);
+    setSize(360, 272);
 
     gainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 84, 24);
@@ -40,15 +42,16 @@ RGainAudioProcessorEditor::~RGainAudioProcessorEditor()
 void RGainAudioProcessorEditor::paint(juce::Graphics& g)
 {
     ranze::ui::drawPluginPanel(g, getLocalBounds(), theme);
-    ranze::ui::drawPluginTitle(g, { 18, 12, 120, 24 }, theme, "R-Gain");
+    ranze::ui::drawPluginTitle(g, { 28, 20, 156, 32 }, theme, "R-Gain");
 
-    auto meterArea = getLocalBounds().removeFromRight(92).toFloat();
-    meterArea.removeFromTop(96.0f);
-    meterArea.removeFromBottom(32.0f);
-    meterArea = meterArea.reduced(18.0f, 0.0f);
+    auto meterArea = getLocalBounds().toFloat().reduced(24.0f);
+    meterArea.removeFromTop(100.0f);
+    meterArea = meterArea.removeFromRight(76.0f);
+    meterArea.removeFromBottom(28.0f);
+    meterArea = meterArea.reduced(8.0f, 0.0f);
 
     const auto meterWidth = 20.0f;
-    const auto gap = 12.0f;
+    const auto gap = 14.0f;
 
     ranze::ui::drawVerticalPeakMeter(g, meterArea.withWidth(meterWidth), theme, leftMeterLevel, "L");
     ranze::ui::drawVerticalPeakMeter(g, meterArea.withX(meterArea.getX() + meterWidth + gap).withWidth(meterWidth), theme, rightMeterLevel, "R");
@@ -56,15 +59,16 @@ void RGainAudioProcessorEditor::paint(juce::Graphics& g)
 
 void RGainAudioProcessorEditor::resized()
 {
-    auto bounds = getLocalBounds().reduced(18);
-    bounds.removeFromTop(26);
+    auto bounds = getLocalBounds().reduced(24);
+    auto header = bounds.removeFromTop(72);
+    themeButton.setBounds(header.removeFromRight(30).removeFromTop(30));
 
-    auto meterSpace = bounds.removeFromRight(86);
-    themeButton.setBounds(meterSpace.removeFromTop(28).removeFromRight(28));
-    valueLabel.setBounds(meterSpace.removeFromTop(30).withTrimmedTop(6));
+    auto meterSpace = bounds.removeFromRight(76);
+    valueLabel.setBounds(meterSpace.removeFromTop(28));
 
+    bounds.removeFromRight(16);
     gainLabel.setBounds(bounds.removeFromTop(24));
-    gainSlider.setBounds(bounds.reduced(10, 0));
+    gainSlider.setBounds(bounds.reduced(16, 0));
 }
 
 void RGainAudioProcessorEditor::timerCallback()
@@ -115,6 +119,7 @@ void RGainAudioProcessorEditor::showThemeMenu()
 
 void RGainAudioProcessorEditor::setThemeIndex(int themeIndex)
 {
+    rgain::settings::saveDefaultThemeIndex(themeIndex);
     themeSelector.setSelectedId(themeIndex + 1, juce::sendNotificationSync);
 }
 

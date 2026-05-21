@@ -39,18 +39,22 @@ mkdir -p "${PACKAGE_DIR}"
 ditto "${VST3_SOURCE}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3/R-Gain.vst3"
 ditto "${AU_SOURCE}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components/R-Gain.component"
 
-if [[ -n "${MACOS_APP_SIGN_IDENTITY}" ]]; then
-    codesign --force --deep --options runtime --timestamp --sign "${MACOS_APP_SIGN_IDENTITY}" \
-        "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3/R-Gain.vst3"
-    codesign --force --deep --options runtime --timestamp --sign "${MACOS_APP_SIGN_IDENTITY}" \
-        "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components/R-Gain.component"
+app_sign_identity="${MACOS_APP_SIGN_IDENTITY:-"-"}"
+codesign_options=(--force --deep --sign "${app_sign_identity}")
+
+if [[ "${app_sign_identity}" != "-" ]]; then
+    codesign_options+=(--options runtime --timestamp)
 fi
+
+codesign "${codesign_options[@]}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/VST3/R-Gain.vst3"
+codesign "${codesign_options[@]}" "${PAYLOAD_DIR}/Library/Audio/Plug-Ins/Components/R-Gain.component"
 
 pkgbuild_args=(
     --root "${PAYLOAD_DIR}"
     --identifier "${IDENTIFIER}"
     --version "${VERSION}"
     --install-location "/"
+    --ownership recommended
 )
 
 if [[ -n "${MACOS_INSTALLER_SIGN_IDENTITY}" ]]; then

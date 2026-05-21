@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 
 #include "PluginEditor.h"
+#include "UserSettings.h"
 
 RGainAudioProcessor::RGainAudioProcessor()
     : AudioProcessor(BusesProperties()
@@ -8,6 +9,11 @@ RGainAudioProcessor::RGainAudioProcessor()
           .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "Parameters", rgain::param::createParameterLayout())
 {
+    if (const auto themeIndex = rgain::settings::loadDefaultThemeIndex())
+    {
+        if (auto* parameter = apvts.getParameter(rgain::param::theme))
+            parameter->setValueNotifyingHost(parameter->convertTo0to1(static_cast<float>(*themeIndex)));
+    }
 }
 
 void RGainAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)

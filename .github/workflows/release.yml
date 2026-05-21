@@ -23,12 +23,16 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Import Apple Developer ID certificates
-        if: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 != '' && secrets.MACOS_CERTIFICATE_PASSWORD != '' }}
         env:
           MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
           MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
         run: |
+          if [ -z "$MACOS_CERTIFICATE_P12_BASE64" ] || [ -z "$MACOS_CERTIFICATE_PASSWORD" ]; then
+            echo "Apple Developer ID certificate secrets are not configured; skipping certificate import."
+            exit 0
+          fi
+
           CERTIFICATE_PATH="$RUNNER_TEMP/ranze-developer-id.p12"
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
           KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-temporary-keychain-password}"

@@ -8,22 +8,14 @@ RGainAudioProcessorEditor::RGainAudioProcessorEditor(RGainAudioProcessor& proces
 
     gainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 84, 24);
-    gainSlider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(0xffff5a1f));
-    gainSlider.setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0xff3a3a3a));
-    gainSlider.setColour(juce::Slider::thumbColourId, juce::Colour(0xffffc15a));
-    gainSlider.setColour(juce::Slider::textBoxTextColourId, juce::Colours::white);
-    gainSlider.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colour(0xff151515));
-    gainSlider.setColour(juce::Slider::textBoxOutlineColourId, juce::Colour(0xff2a2a2a));
     addAndMakeVisible(gainSlider);
 
     gainLabel.setText("Gain", juce::dontSendNotification);
     gainLabel.setJustificationType(juce::Justification::centred);
-    gainLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     addAndMakeVisible(gainLabel);
 
     valueLabel.setText("Output", juce::dontSendNotification);
     valueLabel.setJustificationType(juce::Justification::centred);
-    valueLabel.setColour(juce::Label::textColourId, juce::Colour(0xffcfcfcf));
     addAndMakeVisible(valueLabel);
 
     gainAttachment = std::make_unique<SliderAttachment>(
@@ -31,6 +23,7 @@ RGainAudioProcessorEditor::RGainAudioProcessorEditor(RGainAudioProcessor& proces
         rgain::param::gainDb,
         gainSlider);
 
+    applyTheme();
     startTimerHz(30);
 }
 
@@ -41,14 +34,8 @@ RGainAudioProcessorEditor::~RGainAudioProcessorEditor()
 
 void RGainAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff080808));
-
-    g.setColour(juce::Colour(0xff1c1c1c));
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(10.0f), 8.0f);
-
-    g.setColour(juce::Colour(0xffff5a1f));
-    g.setFont(juce::FontOptions(18.0f, juce::Font::bold));
-    g.drawText("R-Gain", 18, 12, 120, 24, juce::Justification::centredLeft);
+    ranze::ui::drawPluginPanel(g, getLocalBounds(), theme);
+    ranze::ui::drawPluginTitle(g, { 18, 12, 120, 24 }, theme, "R-Gain");
 
     auto meterArea = getLocalBounds().removeFromRight(92).toFloat();
     meterArea.removeFromTop(96.0f);
@@ -58,8 +45,8 @@ void RGainAudioProcessorEditor::paint(juce::Graphics& g)
     const auto meterWidth = 20.0f;
     const auto gap = 12.0f;
 
-    drawMeter(g, meterArea.withWidth(meterWidth), leftMeterLevel, "L");
-    drawMeter(g, meterArea.withX(meterArea.getX() + meterWidth + gap).withWidth(meterWidth), rightMeterLevel, "R");
+    ranze::ui::drawVerticalPeakMeter(g, meterArea.withWidth(meterWidth), theme, leftMeterLevel, "L");
+    ranze::ui::drawVerticalPeakMeter(g, meterArea.withX(meterArea.getX() + meterWidth + gap).withWidth(meterWidth), theme, rightMeterLevel, "R");
 }
 
 void RGainAudioProcessorEditor::resized()
@@ -81,32 +68,13 @@ void RGainAudioProcessorEditor::timerCallback()
     repaint();
 }
 
-void RGainAudioProcessorEditor::drawMeter(juce::Graphics& g, juce::Rectangle<float> bounds, float level, const juce::String& label)
+void RGainAudioProcessorEditor::applyTheme()
 {
-    g.setColour(juce::Colour(0xff050505));
-    g.fillRoundedRectangle(bounds, 4.0f);
+    theme = ranze::ui::getDefaultTheme();
 
-    g.setColour(juce::Colour(0xff303030));
-    g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+    ranze::ui::applyRotarySliderTheme(gainSlider, theme);
+    ranze::ui::applyLabelTheme(gainLabel, theme);
+    ranze::ui::applyLabelTheme(valueLabel, theme);
 
-    const auto clampedLevel = juce::jlimit(0.0f, 1.0f, level);
-    const auto levelDb = juce::Decibels::gainToDecibels(clampedLevel, -60.0f);
-    const auto normalized = juce::jmap(juce::jlimit(-60.0f, 0.0f, levelDb), -60.0f, 0.0f, 0.0f, 1.0f);
-    const auto fillHeight = bounds.getHeight() * normalized;
-
-    auto fillBounds = bounds.withY(bounds.getBottom() - fillHeight).withHeight(fillHeight).reduced(3.0f);
-
-    g.setGradientFill(juce::ColourGradient(
-        juce::Colour(0xffffd15c),
-        fillBounds.getCentreX(),
-        fillBounds.getY(),
-        juce::Colour(0xffff3b1f),
-        fillBounds.getCentreX(),
-        fillBounds.getBottom(),
-        false));
-    g.fillRoundedRectangle(fillBounds, 3.0f);
-
-    g.setColour(juce::Colour(0xffd0d0d0));
-    g.setFont(juce::FontOptions(12.0f));
-    g.drawText(label, bounds.withY(bounds.getBottom() + 4.0f).withHeight(16.0f), juce::Justification::centred);
+    repaint();
 }

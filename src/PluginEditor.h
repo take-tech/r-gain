@@ -3,6 +3,8 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
+#include <ranze_plugin_ui/Theme.h>
+
 #include "PluginProcessor.h"
 
 class RGainAudioProcessorEditor final : public juce::AudioProcessorEditor,
@@ -19,9 +21,10 @@ private:
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
     void timerCallback() override;
-    void drawMeter(juce::Graphics& g, juce::Rectangle<float> bounds, float level, const juce::String& label);
+    void applyTheme();
 
     RGainAudioProcessor& audioProcessor;
+    ranze::ui::Theme theme { ranze::ui::getDefaultTheme() };
 
     juce::Slider gainSlider;
     juce::Label gainLabel;

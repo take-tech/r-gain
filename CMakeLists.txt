@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(RGain VERSION 0.1.0 LANGUAGES C CXX)
+project(RGain VERSION 0.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(external/juce)
+add_subdirectory(external/ranze-plugin-ui)
 
 if(APPLE)
     set(RGAIN_FORMATS VST3 AU)
@@ -47,6 +48,7 @@ target_link_libraries(RGain
     PRIVATE
         juce::juce_audio_utils
         juce::juce_dsp
+        ranze::plugin_ui
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

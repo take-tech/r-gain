@@ -6,6 +6,10 @@ R-Gain is a lightweight gain utility plugin designed for simple level control an
 
 v0.1 intentionally includes only Gain and an Output Meter. Phase invert, pan, width, mono, preset management, and advanced metering are not implemented yet.
 
+## v0.2 Scope
+
+v0.2 keeps the same simple audio feature set and moves shared UI theme code into `ranze-plugin-ui`, which is shared with other Ranze plugins.
+
 ## Features
 
 - Gain control from -60 dB to +24 dB
@@ -140,12 +144,12 @@ GitHub Actions can build downloadable installers for Releases.
 To create release installers, push a version tag:
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 The generated installers are attached to the GitHub Release. The current setup is unsigned. For public distribution, macOS Developer ID signing/notarization and Windows code signing should be added before wider release.
 
 ## Development Status
 
-R-Gain is currently at v0.1. The priority is a stable, lightweight gain utility that builds cleanly, loads in a DAW, applies gain correctly, and shows basic output metering.
+R-Gain is currently at v0.2. The priority is a stable, lightweight gain utility that builds cleanly, loads in a DAW, applies gain correctly, and shows basic output metering.

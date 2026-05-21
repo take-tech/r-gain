@@ -7,7 +7,7 @@ ARTIFACTS_DIR="${BUILD_DIR}/RGain_artefacts"
 PACKAGE_DIR="${BUILD_DIR}/packages"
 PAYLOAD_DIR="${BUILD_DIR}/pkg-payload"
 IDENTIFIER="com.ranze.rgain.pkg"
-VERSION="${RGain_VERSION:-0.1.0}"
+VERSION="${RGain_VERSION:-0.2.0}"
 
 PKG_OUTPUT="${PACKAGE_DIR}/R-Gain-${VERSION}-macOS.pkg"
 
